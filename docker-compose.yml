@@ -1,0 +1,23 @@
+version: '3'
+services:
+  jenkins:
+    build: ./jenkins
+    volumes:
+      - ./jenkins/scripts:/scripts
+      - ./jenkins/jenkins_home:/var/jenkins_home
+    environment:
+      - JENKINS_OPTS=--prefix=/jenkins
+
+  git:
+    build: ./git
+    volumes:
+      - ./git/git:/home/git
+
+  web:
+    build: ./web
+    ports:
+      - "9457:80"
+    volumes:
+      - ./web/sites-enabled:/etc/nginx/sites-enabled
+      - ./web/html:/var/www/html
+      - ./git/git:/var/www/git

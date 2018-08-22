@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <Match>
+    <Or>
+      <Bug pattern="PATH_TRAVERSAL_IN"/>
+      <Bug pattern="PREDICTABLE_RANDOM"/>
+    </Or>
+  </Match>
+</FindBugsFilter>

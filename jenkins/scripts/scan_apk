@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# Move the uploaded file to the original uploaded file name
+mv file "$file"
+
+echo "[+] Prepare"
+
+# Convert the apk to jar
+/scripts/dex2jar-2.0/d2j-dex2jar.sh "$file"
+
+# Extract package_name, version_name and version_code from the apk
+apk_infos="$(/scripts/apk_info.py "$file")"
+eval $apk_infos
+
+echo "[+] APK: $package_name (versionCode=$version_code, versionName=$version_name)"
+
+# Write the build name to a file that Jenkins will pick up
+branch_name="${version_code}__${version_name}__$(date +%s)"
+build_name="${package_name}__${branch_name}"
+echo -n $build_name > build_name
+
+
+echo "[+] Decompile"
+ls *.jar | xargs -d '\n' -n1 java -jar /scripts/cfr.jar --outputdir src &>/dev/null
+
+
+echo "[+] FindSecBugs"
+mkdir target
+/scripts/fsb/findsecbugs.sh -xml -output $PWD/target/findbugsXml.xml $PWD
+
+
+echo "[+] Git push"
+
+/scripts/setup_ssh > /dev/null
+
+# Ensure git repo exists on the server
+ssh git@git init "$package_name"
+
+git init
+git remote add origin "git@git:$package_name"
+git fetch
+git add src target *.apk
+git checkout -b "$branch_name"
+git commit -m "$branch_name"
+git push origin "$branch_name"
+
+bugs_branch="${branch_name}_bugs"
+git checkout -b "$bugs_branch"
+
+echo "[+] Annotate code"
+/scripts/annotate_code.py >/dev/null
+
+echo "[+] Final push"
+git push origin "$bugs_branch"
+
+echo "Clone the repository using the following command:"
+echo
+echo "git clone http://localhost:9457/git/$package_name -b $bugs_branch"
+echo

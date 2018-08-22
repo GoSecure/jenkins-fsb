@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+mv file "$file"
+
+echo "[+] Prepare"
+/scripts/prepare.py
+
+echo "$@" | grep -q -e "-skipDecompilation" -
+if [[ $? -eq 0 ]]; then
+   echo "[+] Skipping decompilation"
+else
+   echo "[+] Decompilation"
+   find -name \*.jar | xargs -n1 java -jar /scripts/cfr.jar --outputdir src
+fi
+
+echo "[+] FindSecBugs"
+
+if [[ ! -z "$profile" ]] && [[ -f "$profile" ]]; then
+    FSB_EXTRA_ARGS="-exclude $profile"
+fi
+
+mkdir target
+/scripts/fsb/findsecbugs.sh -xml -output $PWD/target/findbugsXml.xml $FSB_EXTRA_ARGS $PWD

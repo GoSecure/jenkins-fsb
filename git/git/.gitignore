@@ -1,0 +1,13 @@
+# ignore everything
+*
+
+# keep dotfiles
+!/.*
+!/.ssh/authorized_keys
+
+# except bash history
+.bash_history
+
+# and shell commands
+!/git-shell-commands
+!/git-shell-commands/*

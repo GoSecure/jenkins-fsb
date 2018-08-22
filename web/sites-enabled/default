@@ -1,0 +1,37 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    root /var/www/html;
+
+    # Add index.php to the list if you are using PHP
+    index index.html index.htm index.nginx-debian.html;
+
+    server_name _;
+
+    location /jenkins {
+        proxy_set_header   Host             $http_host;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_max_temp_file_size 0;
+        client_max_body_size 0;
+
+        proxy_pass http://jenkins:8080;
+    }
+
+    location ~ /git(/.*) {
+        client_max_body_size 0; # Git pushes can be massive, just to make sure nginx doesn't suddenly cut the connection add this.
+        include /etc/nginx/fastcgi_params; # Include the default fastcgi configs
+        fastcgi_param SCRIPT_FILENAME /usr/lib/git-core/git-http-backend; # Tells fastcgi to pass the request to the git http backend executable
+        fastcgi_param GIT_HTTP_EXPORT_ALL "";
+        fastcgi_param GIT_PROJECT_ROOT /var/www/git; # /var/www/git is the location of all of your git repositories.
+        fastcgi_param REMOTE_USER $remote_user;
+        fastcgi_param PATH_INFO $1; # Takes the capture group from our location directive and gives git that.
+        fastcgi_pass  unix:/var/run/fcgiwrap.socket; # Pass the request to fastcgi
+    }
+
+    location / {
+	# First attempt to serve request as file, then
+	# as directory, then fall back to displaying a 404.
+	try_files $uri $uri/ =404;
+    }
+}

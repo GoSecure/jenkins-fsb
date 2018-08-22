@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ]; then
+    "repository name required"
+    exit 1
+fi
+
+mkdir "$1"
+cd "$1"
+git init --bare

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+mv file "$file"
+
+echo "[+] Prepare"
+/scripts/prepare.py
+
+find -name \*.jar | xargs -n1 java -jar /scripts/cfr.jar --outputdir src
+
+echo "[+] FindSecBugs"
+
+if [[ ! -z "$profile" ]]; then
+    FSB_EXTRA_ARGS="-exclude $profile"
+fi
+
+mkdir target
+find `pwd` -name \*.jar | /scripts/fsb/findsecbugs.sh -xargs -xml -output $PWD/target/findbugsXml.xml $FSB_EXTRA_ARGS
+
+echo "[+] Git"
+
+branch_name="$(date +%F-%H-%M-%S)"
+
+/scripts/setup_ssh > /dev/null
+
+ssh git@git init "$JOB_NAME"
+
+git init
+git remote add origin "git@git:$JOB_NAME"
+git fetch
+git add src target *.jar
+git checkout -b "$branch_name"
+git commit -m "$branch_name"
+
+git checkout -b "${branch_name}_bugs"
+
+echo "[+] Annotate code"
+/scripts/annotate_code.py >/dev/null
+
+echo "[+] Final push"
+git push origin "${branch_name}_bugs"
+
+echo "Clone the repository using the following command:"
+echo
+echo "git clone http://localhost:9457/git/$JOB_NAME -b ${branch_name}_bugs"
+echo
