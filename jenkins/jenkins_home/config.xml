@@ -25,6 +25,9 @@
     <hudson.model.AllView>
       <owner class="hudson" reference="../../.."/>
       <name>all</name>
+      <description>For Android applications: use android job. Code will be annotated and pushed in http://localhost:9457/git/$PACKAGE&#xd;
+For quick analysis: use scan_file. Code will not be pushed in Git.&#xd;
+For large scale project, copy the large_scan_template. Code will be annotated and pushed in http://localhost:9457/git/$JOB_NAME</description>
       <filterExecutors>false</filterExecutors>
       <filterQueue>false</filterQueue>
       <properties class="hudson.model.View$PropertyList"/>
