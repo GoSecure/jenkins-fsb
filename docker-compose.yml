@@ -21,3 +21,4 @@ services:
       - ./web/sites-enabled:/etc/nginx/sites-enabled
       - ./web/html:/var/www/html
       - ./git/git:/var/www/git
+      - ./web/pass:/etc/nginx/pass

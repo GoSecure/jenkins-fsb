@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 
-RUN apt-get update && apt-get install -y nginx git fcgiwrap
+RUN apt-get update && apt-get install -y nginx git fcgiwrap apache2-utils
 
 RUN service fcgiwrap start
 
